@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { Converter } from "../coverter";
 
 export function meta(metaArgs: Route.MetaArgs) {
   return [
@@ -9,5 +9,5 @@ export function meta(metaArgs: Route.MetaArgs) {
 }
 
 export default function Home() {
-  return <Welcome />;
+  return <Converter />;
 }

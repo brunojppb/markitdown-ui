@@ -10,6 +10,7 @@ import {
 } from "@radix-ui/themes";
 import { useCallback, useRef, useState, type ChangeEvent } from "react";
 import toast from "react-hot-toast";
+import { convertToMarkdown } from "./python";
 
 const mimeTypePPTX =
   "application/vnd.openxmlformats-officedocument.presentationml.presentation";
@@ -19,7 +20,7 @@ const mimeTypePDF = "application/pdf";
 const mimeTypeHTML = "text/html";
 const mimeTypeCSV = "text/csv";
 
-export function Welcome() {
+export function Converter() {
   return (
     <Container>
       <ConvertForm />
@@ -27,14 +28,19 @@ export function Welcome() {
   );
 }
 
+const toastStyle = {
+  borderRadius: "10px",
+  background: "#333",
+  color: "#fff",
+};
+
 export default function ConvertForm() {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<Array<File>>([]);
   const [convertedFiles, setConvertedFiles] = useState<Array<[string, Blob]>>(
     []
   );
-  const [isLoadingPython, setIsLoadingPython] = useState(false);
-  const [isPythonInstalled, setIsPythonInstalled] = useState(false);
+
   const [isConverting, setIsConverting] = useState(false);
 
   const onOpenFiles = useCallback(function btnClick() {
@@ -66,48 +72,23 @@ export default function ConvertForm() {
       try {
         setIsConverting(true);
 
-        if (!isPythonInstalled) {
-          setIsLoadingPython(true);
-        }
-
-        const pyodide = await installPython();
-
-        const newFiles: Array<[string, Blob]> = [];
-        for (const file of files) {
-          const filename = file.name;
-          const arrayBuffer = await file.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          pyodide.FS.writeFile(`/${filename}`, uint8Array);
-          console.log("File file loaded into Pyodide");
-
-          const result = pyodide.runPython(`
-              from markitdown import MarkItDown
-              
-              markitdown = MarkItDown()
-              result = markitdown.convert("/${filename}")
-              result.text_content
-            `);
-
-          const blob = new Blob([result], { type: "text/markdown" });
-          newFiles.push([file.name, blob]);
-        }
-        setConvertedFiles(newFiles);
+        const convertedFiles = await convertToMarkdown(files);
+        setConvertedFiles(convertedFiles);
         toast.success("Files converted successfully!", {
-          style: {
-            borderRadius: "10px",
-            background: "#333",
-            color: "#fff",
-          },
-          duration: 3000
+          style: toastStyle,
+          duration: 3000,
         });
       } catch (error: unknown) {
         console.log("Could not convert file", error);
+        toast.error("Could not convert files. Pleasy try again later", {
+          icon: "😰",
+          style: toastStyle,
+        });
       } finally {
         setIsConverting(false);
-        setIsLoadingPython(false);
       }
     },
-    [files, isPythonInstalled]
+    [files]
   );
 
   const download = useCallback(function downloadConvertedFile(
@@ -126,7 +107,7 @@ export default function ConvertForm() {
   []);
 
   return (
-    <Flex direction="column" mt="9" px="4" gap="6">
+    <Flex direction="column" mt="9" px="4" gap="2">
       <input
         type="file"
         id="upload-input"
@@ -136,22 +117,29 @@ export default function ConvertForm() {
         style={{ visibility: "hidden" }}
         onChange={onFileInputChange}
       />
-      <Heading size="9">Convert anything to Markdown</Heading>
-      <Flex direction="column" gap="2">
-        <Text size="4" color="plum" highContrast weight="bold">
-          Convert PDFs, HTML pages, DOCX and more to Markdown. All offline,
-          directly on your machine.
-        </Text>
-        <Text size="2" color="plum">
-          Built with ❤️ by <Link href="https://github.com/brunojppb">Bruno Paulino</Link> • This project is{" "}
-          <Link href="https://github.com/brunojppb/markitdown-ui/">open-source</Link>.
-        </Text>
+      <Flex direction={{ initial: 'column', md: 'row'}}>
+        <Heading size="9">Convert anything to Markdown</Heading>
+        <Flex direction="column" gap="2" mt='4'>
+          <Text size="4" color="plum" highContrast weight="bold">
+            Convert PDFs, HTML pages, DOCX and more to Markdown. All offline,
+            directly on your browser.
+          </Text>
+          <Text size="2" color="plum">
+            Built with ❤️ by{" "}
+            <Link href="https://github.com/brunojppb">Bruno Paulino</Link> •
+            Leave a star on{" "}
+            <Link href="https://github.com/brunojppb/markitdown-ui/">
+              Github
+            </Link>
+            .
+          </Text>
+        </Flex>
       </Flex>
       <Flex
         direction="column"
         justify="center"
         align="center"
-        minHeight="200px"
+        minHeight="100px"
       >
         <Button onClick={onOpenFiles} variant="outline" size="4">
           <UploadIcon /> Open files
@@ -183,7 +171,7 @@ export default function ConvertForm() {
                           download(file.name, maybeBlob[1]);
                         }}
                       >
-                        <DownloadIcon /> Download markdown
+                        <DownloadIcon /> Download Markdown
                       </Button>
                     </Table.Cell>
                   </Table.Row>
@@ -200,11 +188,11 @@ export default function ConvertForm() {
         </Table.Root>
       )}
 
-      <Flex justify="between">
+      <Flex justify="end" mt="4">
         <Button
           onClick={convertFiles}
-          disabled={isLoadingPython || isConverting}
-          loading={isLoadingPython || isConverting}
+          disabled={isConverting}
+          loading={isConverting}
           style={{ visibility: files.length > 0 ? "inherit" : "hidden" }}
         >
           <UpdateIcon /> Convert files
@@ -212,22 +200,4 @@ export default function ConvertForm() {
       </Flex>
     </Flex>
   );
-}
-
-// @ts-expect-error: The Pyodide library is globally available
-let pyodide = null;
-
-async function installPython() {
-  // @ts-expect-error: The Pyodide library is globally available
-  if (pyodide) {
-    return pyodide;
-  }
-  console.log("loading pyodide");
-  // @ts-expect-error: The Pyodide library is globally available
-  pyodide = await window.loadPyodide();
-  await pyodide.loadPackage("micropip");
-  const micropip = pyodide.pyimport("micropip");
-  await micropip.install("markitdown");
-
-  return pyodide;
 }

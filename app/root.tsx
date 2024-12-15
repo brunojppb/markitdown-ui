@@ -10,9 +10,11 @@ import {
 import type { Route } from "./+types/root";
 import { Theme } from "@radix-ui/themes";
 import radixCSS from "@radix-ui/themes/styles.css?url";
+import styles from "./app.css?url";
 import { Toaster } from "react-hot-toast";
 
 export const links: Route.LinksFunction = () => [
+  { rel: "stylesheet", href: styles },
   { rel: "stylesheet", href: radixCSS },
 ];
 
