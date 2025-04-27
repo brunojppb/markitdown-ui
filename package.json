@@ -21,7 +21,7 @@
   },
   "devDependencies": {
     "@react-router/dev": "^7.0.2",
-    "@types/node": "^20",
+    "@types/node": "^22.0.0",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "autoprefixer": "^10.4.20",
@@ -33,7 +33,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "volta": {
-    "node": "20.15.0",
+    "node": "22.15.0",
     "pnpm": "9.15.9"
   }
 }
