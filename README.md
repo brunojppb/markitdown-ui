@@ -5,7 +5,3 @@ Using the [markitdown library from Microsoft](https://github.com/microsoft/marki
 All dependencies are under the `public/py` folder and can be downloaded from [jsdelivr here](https://cdn.jsdelivr.net) where the path is at:
 
 - [x] `https://cdn.jsdelivr.net/pyodide/v0.26.4/full/my_dependency_here`
-
-## Use it yourself
-
-This Web app is available at [brunojppb.github.io/markitdown-ui](https://brunojppb.github.io/markitdown-ui/)
