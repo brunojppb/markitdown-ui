@@ -23,7 +23,7 @@
     "@react-router/dev": "^7.0.2",
     "@tailwindcss/postcss": "^4.1.4",
     "@tailwindcss/vite": "^4.1.4",
-    "@types/node": "^22.0.0",
+    "@types/node": "^24.0.0",
     "@types/react": "^19.0.1",
     "@types/react-dom": "^19.0.1",
     "autoprefixer": "^10.4.20",
@@ -35,7 +35,7 @@
     "vite-tsconfig-paths": "^5.1.4"
   },
   "volta": {
-    "node": "22.21.1",
+    "node": "24.11.0",
     "pnpm": "10.18.2"
   }
 }
